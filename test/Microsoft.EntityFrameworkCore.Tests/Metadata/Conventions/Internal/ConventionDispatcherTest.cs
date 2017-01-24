@@ -61,6 +61,50 @@ namespace Microsoft.EntityFrameworkCore.Tests.Metadata.Conventions.Internal
             }
 
             Assert.NotNull(entityTypeBuilder);
+            Assert.Empty(builder.Metadata.GetEntityTypes());
+            Assert.Null(builder.Metadata.FindEntityType(typeof(Order)));
+        }
+
+        [InlineData(false)]
+        [Theory]
+        public void OnEntityTypeAdded_calls_apply_on_conventions_in_order_for_delegated_identity(bool useBuilder)
+        {
+            var conventions = new ConventionSet();
+
+            InternalEntityTypeBuilder entityTypeBuilder = null;
+            var convention = new Mock<IEntityTypeConvention>();
+            convention.Setup(c => c.Apply(It.IsAny<InternalEntityTypeBuilder>())).Returns<InternalEntityTypeBuilder>(b =>
+                {
+                    Assert.True(b.Metadata.HasDelegatedIdentity);
+                    entityTypeBuilder = new InternalEntityTypeBuilder(b.Metadata, b.ModelBuilder);
+                    return entityTypeBuilder;
+                });
+            conventions.EntityTypeAddedConventions.Add(convention.Object);
+
+            var nullConvention = new Mock<IEntityTypeConvention>();
+            nullConvention.Setup(c => c.Apply(It.IsAny<InternalEntityTypeBuilder>())).Returns<InternalEntityTypeBuilder>(b =>
+                {
+                    Assert.Same(entityTypeBuilder, b);
+                    return null;
+                });
+            conventions.EntityTypeAddedConventions.Add(nullConvention.Object);
+
+            var extraConvention = new Mock<IEntityTypeConvention>();
+            extraConvention.Setup(c => c.Apply(It.IsAny<InternalEntityTypeBuilder>())).Returns<InternalEntityTypeBuilder>(b =>
+                {
+                    Assert.False(true);
+                    return null;
+                });
+            conventions.EntityTypeAddedConventions.Add(extraConvention.Object);
+
+            var builder = new InternalModelBuilder(new Model(conventions));
+
+            Assert.Null(builder.Metadata.AddDelegatedIdentityEntityType(typeof(Order), ConfigurationSource.Convention));
+
+            Assert.NotNull(entityTypeBuilder);
+            Assert.Empty(builder.Metadata.GetEntityTypes());
+
+            builder.Metadata.AddEntityType(typeof(Order), runConventions: false);
         }
 
         [InlineData(false)]
@@ -347,6 +391,7 @@ namespace Microsoft.EntityFrameworkCore.Tests.Metadata.Conventions.Internal
             }
 
             Assert.NotNull(propertyBuilder);
+            Assert.Empty(entityBuilder.Metadata.GetProperties());
         }
 
         [InlineData(false)]
@@ -397,6 +442,7 @@ namespace Microsoft.EntityFrameworkCore.Tests.Metadata.Conventions.Internal
             }
 
             Assert.NotNull(propertyBuilder);
+            Assert.Empty(entityBuilder.Metadata.GetProperties());
         }
 
         [InlineData(false)]

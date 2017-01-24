@@ -85,15 +85,6 @@ namespace Microsoft.EntityFrameworkCore.Relational.Tests.Update
         }
 
         private static Mock<InternalEntityEntry> CreateInternalEntryMock(Property property)
-        {
-            var entityTypeMock = new Mock<EntityType>("Entity", new Model(), ConfigurationSource.Explicit);
-            entityTypeMock.Setup(e => e.GetProperties()).Returns(new[] { property });
-
-            entityTypeMock.Setup(e => e.Counts).Returns(new PropertyCounts(0, 0, 0, 0, 0, 0));
-
-            var internalEntryMock = new Mock<InternalEntityEntry>(
-                Mock.Of<IStateManager>(), entityTypeMock.Object);
-            return internalEntryMock;
-        }
+            => new Mock<InternalEntityEntry>(Mock.Of<IStateManager>(), property.DeclaringType);
     }
 }

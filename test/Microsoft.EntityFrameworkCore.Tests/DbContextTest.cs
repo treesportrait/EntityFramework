@@ -5235,16 +5235,8 @@ namespace Microsoft.EntityFrameworkCore.Tests
         }
 
         private static Mock<InternalEntityEntry> CreateInternalEntryMock()
-        {
-            var entityTypeMock = new Mock<EntityType>("Entity", new Model(), ConfigurationSource.Explicit);
-            entityTypeMock.Setup(e => e.GetProperties()).Returns(new Property[0]);
-
-            entityTypeMock.Setup(e => e.Counts).Returns(new PropertyCounts(0, 0, 0, 0, 0, 0));
-
-            var internalEntryMock = new Mock<InternalEntityEntry>(
-                Mock.Of<IStateManager>(), entityTypeMock.Object);
-            return internalEntryMock;
-        }
+            => new Mock<InternalEntityEntry>(Mock.Of<IStateManager>(),
+                new Model().AddEntityType(typeof(object)).AddProperty("Kake", typeof(string)).DeclaringType);
 
         [Fact]
         public async void It_throws_object_disposed_exception()
