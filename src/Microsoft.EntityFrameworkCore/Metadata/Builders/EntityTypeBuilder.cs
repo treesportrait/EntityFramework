@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -191,6 +192,60 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         /// <returns> An object that can be used to configure the index. </returns>
         public virtual IndexBuilder HasIndex([NotNull] params string[] propertyNames)
             => new IndexBuilder(Builder.HasIndex(Check.NotEmpty(propertyNames, nameof(propertyNames)), ConfigurationSource.Explicit));
+
+        /// <summary>
+        ///     <para>
+        ///         Configures a relationship where this entity type provides identity to
+        ///         the other type in the relationship.
+        ///     </para>
+        /// </summary>
+        /// <param name="ownedType"> The entity type that this relationship targets. </param>
+        /// <param name="navigationName">
+        ///     The name of the reference navigation property on this entity type that represents the relationship.
+        /// </param>
+        /// <param name="buildAction"> An action that performs configuration of the relationship. </param>
+        /// <returns> An object that can be used to configure the entity type. </returns>
+        public virtual EntityTypeBuilder Owns(
+            [NotNull] Type ownedType,
+            [NotNull] string navigationName,
+            [CanBeNull] Action<ReferenceReferenceBuilder> buildAction = null)
+        {
+            Check.NotNull(ownedType, nameof(ownedType));
+            Check.NotEmpty(navigationName, nameof(navigationName));
+
+            var relationship = Builder.Owns(ownedType, navigationName, ConfigurationSource.Explicit);
+            var relatedEntityType = relationship.Metadata.DeclaringEntityType.Builder;
+            buildAction?.Invoke(new ReferenceReferenceBuilder(Builder.Metadata,
+                relatedEntityType.Metadata, relationship));
+            return new EntityTypeBuilder(relatedEntityType);
+        }
+
+        /// <summary>
+        ///     <para>
+        ///         Configures a relationship where this entity type provides identity to
+        ///         the other type in the relationship.
+        ///     </para>
+        /// </summary>
+        /// <param name="ownedTypeName"> The name of the entity type that this relationship targets. </param>
+        /// <param name="navigationName">
+        ///     The name of the reference navigation property on this entity type that represents the relationship.
+        /// </param>
+        /// <param name="buildAction"> An action that performs configuration of the relationship. </param>
+        /// <returns> An object that can be used to configure the entity type. </returns>
+        public virtual EntityTypeBuilder Owns(
+            [NotNull] string ownedTypeName,
+            [NotNull] string navigationName,
+            [CanBeNull] Action<ReferenceReferenceBuilder> buildAction = null)
+        {
+            Check.NotEmpty(ownedTypeName, nameof(ownedTypeName));
+            Check.NotEmpty(navigationName, nameof(navigationName));
+
+            var relationship = Builder.Owns(ownedTypeName, navigationName, ConfigurationSource.Explicit);
+            var relatedEntityType = relationship.Metadata.DeclaringEntityType.Builder;
+            buildAction?.Invoke(new ReferenceReferenceBuilder(
+                Builder.Metadata, relatedEntityType.Metadata, relationship));
+            return new EntityTypeBuilder(relatedEntityType);
+        }
 
         /// <summary>
         ///     <para>

@@ -163,6 +163,7 @@
     <Compile Include="ModelBuilderTest\NonRelationshipTestBase.cs" />
     <Compile Include="ModelBuilderTest\OneToManyTestBase.cs" />
     <Compile Include="ModelBuilderTest\OneToOneTestBase.cs" />
+    <Compile Include="ModelBuilderTest\OwnedTypesTestBase.cs" />
     <Compile Include="ModelBuilderTest\TestModel.cs" />
     <Compile Include="ModelSourceTest.cs" />
     <Compile Include="ServiceProviderCacheTest.cs" />

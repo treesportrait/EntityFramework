@@ -154,6 +154,7 @@
     <Compile Include="Infrastructure\IResettableService.cs" />
     <Compile Include="Metadata\Internal\IndexExtensions.cs" />
     <Compile Include="Metadata\Conventions\Internal\NullConventionSetBuilder.cs" />
+    <Compile Include="Metadata\Internal\TypeIdentity.cs" />
     <Compile Include="Query\AsyncEnumerable.cs" />
     <Compile Include="Query\INodeTypeProviderFactory.cs" />
     <Compile Include="Query\Internal\CompiledAsyncTaskQuery.cs" />

@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions.Internal;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore.Specification.Tests;
 using Microsoft.EntityFrameworkCore.ValueGeneration;
 using Xunit;
 
@@ -78,6 +77,12 @@ namespace Microsoft.EntityFrameworkCore.Tests
         }
 
         public class GenericInheritance : InheritanceTestBase
+        {
+            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder)
+                => new GenericTestModelBuilder(modelBuilder);
+        }
+
+        public class GenericOwnedTypes : OwnedTypesTestBase
         {
             protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder)
                 => new GenericTestModelBuilder(modelBuilder);
@@ -171,6 +176,13 @@ namespace Microsoft.EntityFrameworkCore.Tests
 
             public override TestIndexBuilder HasIndex(params string[] propertyNames)
                 => new TestIndexBuilder(EntityTypeBuilder.HasIndex(propertyNames));
+
+            public override TestEntityTypeBuilder<TRelatedEntity> Owns<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference, Action<TestReferenceReferenceBuilder<TEntity, TRelatedEntity>> buildAction = null)
+                => new GenericTestEntityTypeBuilder<TRelatedEntity>(EntityTypeBuilder.Owns(
+                    reference,
+                    buildAction == null
+                        ? (Action<ReferenceReferenceBuilder<TEntity, TRelatedEntity>>)null
+                        : r => buildAction(new GenericTestReferenceReferenceBuilder<TEntity, TRelatedEntity>(r))));
 
             public override TestReferenceNavigationBuilder<TEntity, TRelatedEntity> HasOne<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference = null)
                 => new GenericTestReferenceNavigationBuilder<TEntity, TRelatedEntity>(EntityTypeBuilder.HasOne(reference));

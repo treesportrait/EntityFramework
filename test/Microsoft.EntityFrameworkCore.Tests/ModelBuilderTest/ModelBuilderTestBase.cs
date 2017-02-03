@@ -169,6 +169,11 @@ namespace Microsoft.EntityFrameworkCore.Tests
             public abstract TestIndexBuilder HasIndex(Expression<Func<TEntity, object>> indexExpression);
             public abstract TestIndexBuilder HasIndex(params string[] propertyNames);
 
+            public abstract TestEntityTypeBuilder<TRelatedEntity> Owns<TRelatedEntity>(
+                Expression<Func<TEntity, TRelatedEntity>> reference,
+                Action<TestReferenceReferenceBuilder<TEntity, TRelatedEntity>> buildAction = null)
+                where TRelatedEntity : class;
+
             public abstract TestReferenceNavigationBuilder<TEntity, TRelatedEntity> HasOne<TRelatedEntity>(
                 Expression<Func<TEntity, TRelatedEntity>> reference = null)
                 where TRelatedEntity : class;

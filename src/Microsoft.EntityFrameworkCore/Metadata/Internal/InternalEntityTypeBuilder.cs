@@ -1648,6 +1648,88 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
+        public virtual InternalRelationshipBuilder Owns(
+            [NotNull] string targetEntityTypeName,
+            [NotNull] string navigationName,
+            ConfigurationSource configurationSource)
+            => Owns(new TypeIdentity(targetEntityTypeName), PropertyIdentity.Create(navigationName), configurationSource);
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual InternalRelationshipBuilder Owns(
+            [NotNull] string targetEntityTypeName,
+            [NotNull] PropertyInfo navigationProperty,
+            ConfigurationSource configurationSource)
+            => Owns(new TypeIdentity( targetEntityTypeName), PropertyIdentity.Create(navigationProperty), configurationSource);
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual InternalRelationshipBuilder Owns(
+            [NotNull] Type targetEntityType,
+            [NotNull] string navigationName,
+            ConfigurationSource configurationSource)
+            => Owns(new TypeIdentity(targetEntityType), PropertyIdentity.Create(navigationName), configurationSource);
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual InternalRelationshipBuilder Owns(
+            [NotNull] Type targetEntityType,
+            [NotNull] PropertyInfo navigationProperty,
+            ConfigurationSource configurationSource)
+            => Owns(new TypeIdentity(targetEntityType), PropertyIdentity.Create(navigationProperty), configurationSource);
+
+        private InternalRelationshipBuilder Owns(
+            TypeIdentity targetEntityType,
+            PropertyIdentity navigationProperty,
+            ConfigurationSource configurationSource)
+        {
+            var builder = Metadata
+                .FindNavigationsInHierarchy(navigationProperty.Name)
+                .Select(n => n.ForeignKey)
+                .SingleOrDefault(
+                    fk => fk.DeclaringEntityType.Name == targetEntityType.Name && fk.DeclaringEntityType.HasDelegatedIdentity)
+                ?.Builder;
+
+            if (builder != null)
+            {
+                return builder;
+            }
+
+            var type = targetEntityType.Type;
+            var ownedEntityType = type == null
+                ? ModelBuilder.AddDelegatedIdentityEntity(targetEntityType.Name, configurationSource)
+                : ModelBuilder.AddDelegatedIdentityEntity(type, configurationSource);
+
+            var relationship = ownedEntityType.CreateForeignKey(
+                this,
+                null,
+                null,
+                null,
+                null,
+                configurationSource,
+                runConventions: false);
+            relationship.PrincipalEntityType(this, configurationSource);
+
+            var property = navigationProperty.Property;
+            var newRelationship = property != null
+                ? relationship.PrincipalToDependent(property, configurationSource)
+                : relationship.PrincipalToDependent(navigationProperty.Name, configurationSource);
+
+            return newRelationship.Metadata == relationship.Metadata
+                ? Metadata.Model.ConventionDispatcher.OnForeignKeyAdded(newRelationship)
+                : newRelationship;
+        }
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
         public virtual InternalRelationshipBuilder Navigation(
             [NotNull] InternalEntityTypeBuilder targetEntityTypeBuilder,
             [CanBeNull] string navigationName,

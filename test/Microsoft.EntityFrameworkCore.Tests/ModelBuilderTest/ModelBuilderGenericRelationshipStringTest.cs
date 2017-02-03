@@ -59,6 +59,13 @@ namespace Microsoft.EntityFrameworkCore.Tests
             protected override TestEntityTypeBuilder<TEntity> Wrap(EntityTypeBuilder<TEntity> entityTypeBuilder)
                 => new GenericStringTestEntityTypeBuilder<TEntity>(entityTypeBuilder);
 
+            public override TestEntityTypeBuilder<TRelatedEntity> Owns<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference, Action<TestReferenceReferenceBuilder<TEntity, TRelatedEntity>> buildAction = null)
+                => new GenericStringTestEntityTypeBuilder<TRelatedEntity>(EntityTypeBuilder.Owns(
+                    reference,
+                    buildAction == null
+                        ? (Action<ReferenceReferenceBuilder<TEntity, TRelatedEntity>>)null
+                        : r => buildAction(new GenericStringTestReferenceReferenceBuilder<TEntity, TRelatedEntity>(r))));
+
             public override TestReferenceNavigationBuilder<TEntity, TRelatedEntity> HasOne<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference = null)
                 => new GenericStringTestReferenceNavigationBuilder<TEntity, TRelatedEntity>(EntityTypeBuilder.HasOne(reference));
 

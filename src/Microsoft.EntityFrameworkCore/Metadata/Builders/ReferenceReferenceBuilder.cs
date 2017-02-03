@@ -36,12 +36,15 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public ReferenceReferenceBuilder(
-            [NotNull] InternalRelationshipBuilder builder,
             [NotNull] EntityType declaringEntityType,
-            [NotNull] EntityType relatedEntityType)
+            [NotNull] EntityType relatedEntityType,
+            [NotNull] InternalRelationshipBuilder builder)
             : this(builder, null)
         {
+            Check.NotNull(declaringEntityType, nameof(declaringEntityType));
+            Check.NotNull(relatedEntityType, nameof(relatedEntityType));
             Check.NotNull(builder, nameof(builder));
+
             _declaringEntityType = declaringEntityType;
             _relatedEntityType = relatedEntityType;
         }

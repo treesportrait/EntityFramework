@@ -191,6 +191,14 @@ namespace Microsoft.EntityFrameworkCore.Tests
             public override TestEntityTypeBuilder<TEntity> HasBaseType<TBaseEntity>()
                 => Wrap(EntityTypeBuilder.HasBaseType(typeof(TBaseEntity)));
 
+            public override TestEntityTypeBuilder<TRelatedEntity> Owns<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference, Action<TestReferenceReferenceBuilder<TEntity, TRelatedEntity>> buildAction = null)
+                => new NonGenericStringTestEntityTypeBuilder<TRelatedEntity>(EntityTypeBuilder.Owns(
+                    typeof(TRelatedEntity),
+                    reference.GetPropertyAccess().Name,
+                    buildAction == null
+                        ? (Action<ReferenceReferenceBuilder>)null
+                        : r => buildAction(new NonGenericStringTestReferenceReferenceBuilder<TEntity, TRelatedEntity>(r))));
+
             public override TestReferenceNavigationBuilder<TEntity, TRelatedEntity> HasOne<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference = null)
                 => new NonGenericStringTestReferenceNavigationBuilder<TEntity, TRelatedEntity>(EntityTypeBuilder.HasOne(typeof(TRelatedEntity).FullName, reference?.GetPropertyAccess().Name));
 

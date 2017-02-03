@@ -36,20 +36,44 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual InternalEntityTypeBuilder Entity([NotNull] string name, ConfigurationSource configurationSource,
-            bool runConventions = true)
+        public virtual InternalEntityTypeBuilder Entity(
+            [NotNull] string name, ConfigurationSource configurationSource, bool runConventions = true)
+            => Entity(new TypeIdentity(name), configurationSource, runConventions);
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual InternalEntityTypeBuilder Entity(
+            [NotNull] Type type, ConfigurationSource configurationSource, bool runConventions = true)
+            => Entity(new TypeIdentity(type), configurationSource, runConventions);
+
+        private InternalEntityTypeBuilder Entity(
+            TypeIdentity type, ConfigurationSource configurationSource, bool runConventions)
         {
-            if (IsIgnored(name, configurationSource))
+            if (IsIgnored(type, configurationSource))
             {
                 return null;
             }
 
-            var entityType = Metadata.FindEntityType(name);
+            var clrType = type.Type;
+            var entityType = clrType == null
+                ? Metadata.FindEntityType(type.Name)
+                : Metadata.FindEntityType(clrType);
             if (entityType == null)
             {
-                Metadata.Unignore(name);
+                if (clrType == null)
+                {
+                    Metadata.Unignore(type.Name);
 
-                entityType = Metadata.AddEntityType(name, configurationSource, runConventions);
+                    entityType = Metadata.AddEntityType(type.Name, configurationSource, runConventions);
+                }
+                else
+                {
+                    Metadata.Unignore(clrType);
+
+                    entityType = Metadata.AddEntityType(clrType, configurationSource, runConventions);
+                }
             }
             else
             {
@@ -63,24 +87,51 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        public virtual InternalEntityTypeBuilder Entity([NotNull] Type type, ConfigurationSource configurationSource,
-            bool runConventions = true)
+        public virtual InternalEntityTypeBuilder AddDelegatedIdentityEntity(
+            [NotNull] string name, ConfigurationSource configurationSource, bool runConventions = true)
+            => AddDelegatedIdentityEntity(new TypeIdentity(name), configurationSource, runConventions);
+
+        /// <summary>
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
+        /// </summary>
+        public virtual InternalEntityTypeBuilder AddDelegatedIdentityEntity(
+            [NotNull] Type type, ConfigurationSource configurationSource, bool runConventions = true)
+            => AddDelegatedIdentityEntity(new TypeIdentity(type), configurationSource, runConventions);
+
+        private InternalEntityTypeBuilder AddDelegatedIdentityEntity(
+            TypeIdentity type, ConfigurationSource configurationSource, bool runConventions)
         {
             if (IsIgnored(type, configurationSource))
             {
                 return null;
             }
 
-            var entityType = Metadata.FindEntityType(type);
-            if (entityType == null)
+            var clrType = type.Type;
+            var entityType = clrType == null
+                ? Metadata.FindEntityType(type.Name)
+                : Metadata.FindEntityType(clrType);
+            if (entityType != null)
             {
-                Metadata.Unignore(type);
+                if (!configurationSource.Overrides(entityType.GetConfigurationSource()))
+                {
+                    return null;
+                }
 
-                entityType = Metadata.AddEntityType(type, configurationSource, runConventions);
+                Ignore(entityType, configurationSource);
+            }
+
+            if (clrType == null)
+            {
+                Metadata.Unignore(type.Name);
+
+                entityType = Metadata.AddDelegatedIdentityEntityType(type.Name, configurationSource, runConventions);
             }
             else
             {
-                entityType.UpdateConfigurationSource(configurationSource);
+                Metadata.Unignore(clrType);
+
+                entityType = Metadata.AddDelegatedIdentityEntityType(clrType, configurationSource, runConventions);
             }
 
             return entityType?.Builder;
@@ -91,20 +142,23 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Internal
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public virtual bool IsIgnored([NotNull] Type type, ConfigurationSource configurationSource)
-            => IsIgnored(type.DisplayName(), configurationSource);
+            => IsIgnored(new TypeIdentity(type), configurationSource);
 
         /// <summary>
         ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public virtual bool IsIgnored([NotNull] string name, ConfigurationSource configurationSource)
+            => IsIgnored(new TypeIdentity(name), configurationSource);
+
+        private bool IsIgnored(TypeIdentity type, ConfigurationSource configurationSource)
         {
             if (configurationSource == ConfigurationSource.Explicit)
             {
                 return false;
             }
 
-            var ignoredConfigurationSource = Metadata.FindIgnoredTypeConfigurationSource(name);
+            var ignoredConfigurationSource = Metadata.FindIgnoredTypeConfigurationSource(type.Name);
             return ignoredConfigurationSource.HasValue
                    && ignoredConfigurationSource.Value.Overrides(configurationSource);
         }

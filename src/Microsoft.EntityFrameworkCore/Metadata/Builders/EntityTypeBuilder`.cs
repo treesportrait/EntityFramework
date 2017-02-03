@@ -35,12 +35,9 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         }
 
         /// <summary>
-        ///     Creates a new builder based on the provided internal builder. This overridden implementation creates
-        ///     <see cref="EntityTypeBuilder{TEntity}" /> instances so that logic inherited from the base class will
-        ///     use those instead of <see cref="EntityTypeBuilder" />.
+        ///     This API supports the Entity Framework Core infrastructure and is not intended to be used
+        ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
-        /// <param name="builder"> The internal builder to create the new builder from. </param>
-        /// <returns> The newly created builder. </returns>
         protected override EntityTypeBuilder New(InternalEntityTypeBuilder builder)
             => new EntityTypeBuilder<TEntity>(builder);
 
@@ -176,6 +173,33 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
         public virtual IndexBuilder HasIndex([NotNull] Expression<Func<TEntity, object>> indexExpression)
             => new IndexBuilder(Builder.HasIndex(
                 Check.NotNull(indexExpression, nameof(indexExpression)).GetPropertyAccessList(), ConfigurationSource.Explicit));
+
+        /// <summary>
+        ///     <para>
+        ///         Configures a relationship where this entity type provides identity to
+        ///         the other type in the relationship.
+        ///     </para>
+        /// </summary>
+        /// <typeparam name="TRelatedEntity"> The entity type that this relationship targets. </typeparam>
+        /// <param name="navigationExpression">
+        ///     A lambda expression representing the reference navigation property on this entity type that represents
+        ///     the relationship (<c>post => post.Blog</c>).
+        /// </param>
+        /// <param name="buildAction"> An action that performs configuration of the relationship. </param>
+        /// <returns> An object that can be used to configure the entity type. </returns>
+        public virtual EntityTypeBuilder<TRelatedEntity> Owns<TRelatedEntity>(
+            [NotNull] Expression<Func<TEntity, TRelatedEntity>> navigationExpression,
+            [CanBeNull] Action<ReferenceReferenceBuilder<TEntity, TRelatedEntity>> buildAction = null)
+            where TRelatedEntity : class
+        {
+            Check.NotNull(navigationExpression, nameof(navigationExpression));
+
+            var relationship = Builder.Owns(typeof(TRelatedEntity), navigationExpression.GetPropertyAccess(), ConfigurationSource.Explicit);
+            var relatedEntityType = relationship.Metadata.DeclaringEntityType.Builder;
+            buildAction?.Invoke(new ReferenceReferenceBuilder<TEntity, TRelatedEntity>(
+                Builder.Metadata, relatedEntityType.Metadata, relationship));
+            return new EntityTypeBuilder<TRelatedEntity>(relatedEntityType);
+        }
 
         /// <summary>
         ///     <para>

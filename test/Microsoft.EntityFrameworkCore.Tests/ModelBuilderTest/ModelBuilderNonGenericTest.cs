@@ -40,19 +40,28 @@ namespace Microsoft.EntityFrameworkCore.Tests
                 => new NonGenericTestModelBuilder(modelBuilder);
         }
 
+        public class NonGenericOwnedTypes : OwnedTypesTestBase
+        {
+            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder)
+                => new NonGenericTestModelBuilder(modelBuilder);
+        }
+
         public class NonGenericOneToMany : OneToManyTestBase
         {
-            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder) => new NonGenericTestModelBuilder(modelBuilder);
+            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder)
+                => new NonGenericTestModelBuilder(modelBuilder);
         }
 
         public class NonGenericManyToOne : ManyToOneTestBase
         {
-            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder) => new NonGenericTestModelBuilder(modelBuilder);
+            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder)
+                => new NonGenericTestModelBuilder(modelBuilder);
         }
 
         public class NonGenericOneToOne : OneToOneTestBase
         {
-            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder) => new NonGenericTestModelBuilder(modelBuilder);
+            protected override TestModelBuilder CreateTestModelBuilder(ModelBuilder modelBuilder)
+                => new NonGenericTestModelBuilder(modelBuilder);
         }
 
         private class NonGenericTestModelBuilder : TestModelBuilder
@@ -131,6 +140,14 @@ namespace Microsoft.EntityFrameworkCore.Tests
 
             public override TestIndexBuilder HasIndex(params string[] propertyNames)
                 => new TestIndexBuilder(EntityTypeBuilder.HasIndex(propertyNames));
+
+            public override TestEntityTypeBuilder<TRelatedEntity> Owns<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference, Action<TestReferenceReferenceBuilder<TEntity, TRelatedEntity>> buildAction = null)
+                => new NonGenericTestEntityTypeBuilder<TRelatedEntity>(EntityTypeBuilder.Owns(
+                    typeof(TRelatedEntity),
+                    reference.GetPropertyAccess().Name,
+                    buildAction == null
+                        ? (Action<ReferenceReferenceBuilder>)null
+                        : r => buildAction(new NonGenericTestReferenceReferenceBuilder<TEntity, TRelatedEntity>(r))));
 
             public override TestReferenceNavigationBuilder<TEntity, TRelatedEntity> HasOne<TRelatedEntity>(Expression<Func<TEntity, TRelatedEntity>> reference = null)
                 => new NonGenericTestReferenceNavigationBuilder<TEntity, TRelatedEntity>(EntityTypeBuilder.HasOne(typeof(TRelatedEntity), reference?.GetPropertyAccess().Name));

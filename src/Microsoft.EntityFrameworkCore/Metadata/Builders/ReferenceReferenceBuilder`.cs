@@ -33,7 +33,7 @@ namespace Microsoft.EntityFrameworkCore.Metadata.Builders
             [NotNull] EntityType declaringEntityType,
             [NotNull] EntityType relatedEntityType,
             [NotNull] InternalRelationshipBuilder builder)
-            : base(builder, declaringEntityType, relatedEntityType)
+            : base(declaringEntityType, relatedEntityType, builder)
         {
         }
 
