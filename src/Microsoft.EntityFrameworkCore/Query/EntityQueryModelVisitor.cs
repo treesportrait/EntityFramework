@@ -1222,6 +1222,11 @@ namespace Microsoft.EntityFrameworkCore.Query
                     .Create(this, querySource)
                     .Visit(expression);
 
+            if (expression.ToString() == "Convert((?[t.Gear].SquadId?))")
+            {
+
+            }
+
             expression
                 = _memberAccessBindingExpressionVisitorFactory
                     .Create(QueryCompilationContext.QuerySourceMapping, this, inProjection)

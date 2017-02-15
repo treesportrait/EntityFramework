@@ -66,6 +66,8 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal
         {
             AddQuerySource(expression.ReferencedQuerySource);
 
+            //add here?
+
             return base.VisitQuerySourceReference(expression);
         }
 
@@ -148,7 +150,16 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal
             }
             else
             {
-                Visit(node.Left);
+                if ((node.NodeType == ExpressionType.Equal || node.NodeType == ExpressionType.NotEqual) 
+                    && node.Left is QuerySourceReferenceExpression 
+                    && _model.FindEntityType(node.Left.Type) != null)
+                {
+
+                }
+                else
+                {
+                    Visit(node.Left);
+                }
             }
 
             var rightSubQueryExpression = node.Right as SubQueryExpression;
@@ -162,7 +173,16 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors.Internal
             }
             else
             {
-                Visit(node.Right);
+                if ((node.NodeType == ExpressionType.Equal || node.NodeType == ExpressionType.NotEqual) 
+                    && node.Right is QuerySourceReferenceExpression
+                    && _model.FindEntityType(node.Right.Type) != null)
+                {
+
+                }
+                else
+                {
+                    Visit(node.Right);
+                }
             }
 
             _selector = oldParentSelector;

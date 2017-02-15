@@ -1818,7 +1818,7 @@ ORDER BY [t.Gear].[SquadId]",
             base.Optional_navigation_type_compensation_works_with_groupby();
 
             Assert.Equal(
-                @"SELECT [t].[Id], [t].[GearNickName], [t].[GearSquadId], [t].[Note], [t.Gear].[Nickname], [t.Gear].[SquadId], [t.Gear].[AssignedCityName], [t.Gear].[CityOrBirthName], [t.Gear].[Discriminator], [t.Gear].[FullName], [t.Gear].[HasSoulPatch], [t.Gear].[LeaderNickname], [t.Gear].[LeaderSquadId], [t.Gear].[Rank]
+                @"SELECT [t].[Id], [t].[GearNickName], [t].[GearSquadId], [t].[Note], [t.Gear].[SquadId]
 FROM [CogTag] AS [t]
 LEFT JOIN [Gear] AS [t.Gear] ON ([t].[GearNickName] = [t.Gear].[Nickname]) AND ([t].[GearSquadId] = [t.Gear].[SquadId])
 WHERE ([t].[Note] <> N'K.I.A.') OR [t].[Note] IS NULL

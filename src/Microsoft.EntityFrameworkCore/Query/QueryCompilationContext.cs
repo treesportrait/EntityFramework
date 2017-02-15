@@ -358,6 +358,26 @@ namespace Microsoft.EntityFrameworkCore.Query
 
             groupJoinMaterializationExpressionVisitor.QueryModelVisitor = groupJoinMaterializationQueryModelVistor;
             groupJoinMaterializationQueryModelVistor.VisitQueryModel(queryModel);
+
+            foreach (var additionalFromClausesRequiringMaterialization in _querySourcesRequiringMaterialization.OfType<AdditionalFromClause>().ToList())
+            {
+                var subQuery = additionalFromClausesRequiringMaterialization.FromExpression as SubQueryExpression;
+                if (subQuery?.QueryModel.ResultOperators.LastOrDefault() is DefaultIfEmptyResultOperator)
+                {
+                    var querySourceReferenceExpression
+                        = subQuery.QueryModel.SelectClause.Selector
+                            as QuerySourceReferenceExpression;
+
+                    var underlyingQuerySource = (((querySourceReferenceExpression.ReferencedQuerySource as MainFromClause)
+                            ?.FromExpression as QuerySourceReferenceExpression)
+                        ?.ReferencedQuerySource as GroupJoinClause)?.JoinClause;
+
+                    if (underlyingQuerySource != null)
+                    {
+                        _querySourcesRequiringMaterialization.Add(underlyingQuerySource);
+                    }
+                }
+            }
         }
 
         private class RequiresMaterializationForGroupJoinQueryModelVisitor : ExpressionTransformingQueryModelVisitor<RequiresMaterializationForGroupJoinExpressionVisitor>

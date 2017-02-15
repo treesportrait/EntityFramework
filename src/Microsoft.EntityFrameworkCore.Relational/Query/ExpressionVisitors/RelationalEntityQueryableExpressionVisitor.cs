@@ -143,6 +143,21 @@ namespace Microsoft.EntityFrameworkCore.Query.ExpressionVisitors
             return base.VisitMethodCall(node);
         }
 
+        protected override Expression VisitExtension(Expression node)
+        {
+            var nullConditionalExpression = node as NullConditionalExpression;
+            if (nullConditionalExpression != null)
+            {
+                Visit(nullConditionalExpression.AccessOperation);
+                Visit(nullConditionalExpression.Caller);
+                Visit(nullConditionalExpression.NullableCaller);
+
+                return node;
+            }
+
+            return base.VisitExtension(node);
+        }
+
         /// <summary>
         ///     Visit an entity query root.
         /// </summary>
